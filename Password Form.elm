@@ -5,7 +5,7 @@
 --
 
 
-module Main exposing (Model, Msg(..), drawCheckMark, drawCircle, init, main, pwIsDigit, pwIsLower, pwIsUpper, pwLength, pwNotEmpty, update, vPwIsDigit, vPwIsLower, vPwIsMatched, vPwIsUpper, vPwLength, vSubmitButton, view, viewInput)
+module Main exposing (..)
 
 import Browser
 import Char exposing (fromCode, isDigit, isLower, isUpper)
@@ -106,16 +106,11 @@ viewInput t p v toMsg =
 vSubmitButton : Model -> Html msg
 vSubmitButton model =
     if
-        model.password
-            == model.passwordAgain
+        pwIsMatched model
             && pwLength model.password
-            == True
             && pwIsUpper model.password
-            == True
             && pwIsLower model.password
-            == True
             && pwIsDigit model.password
-            == True
     then
         button [ disabled False ] [ text "Submit" ]
 
@@ -125,56 +120,56 @@ vSubmitButton model =
 
 vPwLength : Model -> Html msg
 vPwLength model =
-    if pwLength model.password == True || pwLength model.passwordAgain == True then
-        drawCheckMark
+    if List.any pwLength [ model.password, model.passwordAgain ] then
+        vDrawCheckMark
 
     else
-        drawCircle
+        vDrawCircle
 
 
 vPwIsUpper : Model -> Html msg
 vPwIsUpper model =
-    if pwIsUpper model.password == True || pwIsUpper model.passwordAgain == True then
-        drawCheckMark
+    if List.any pwIsUpper [ model.password, model.passwordAgain ] then
+        vDrawCheckMark
 
     else
-        drawCircle
+        vDrawCircle
 
 
 vPwIsLower : Model -> Html msg
 vPwIsLower model =
-    if pwIsLower model.password == True || pwIsLower model.passwordAgain == True then
-        drawCheckMark
+    if List.any pwIsLower [ model.password, model.passwordAgain ] then
+        vDrawCheckMark
 
     else
-        drawCircle
+        vDrawCircle
 
 
 vPwIsDigit : Model -> Html msg
 vPwIsDigit model =
-    if pwIsDigit model.password == True || pwIsDigit model.passwordAgain == True then
-        drawCheckMark
+    if List.any pwIsDigit [ model.password, model.passwordAgain ] then
+        vDrawCheckMark
 
     else
-        drawCircle
+        vDrawCircle
 
 
 vPwIsMatched : Model -> Html msg
 vPwIsMatched model =
-    if model.password == model.passwordAgain && pwNotEmpty model.password == True then
-        drawCheckMark
+    if pwIsMatched model && not (pwIsEmpty model.password) == True then
+        vDrawCheckMark
 
     else
-        drawCircle
+        vDrawCircle
 
 
-drawCircle : Html msg
-drawCircle =
+vDrawCircle : Html msg
+vDrawCircle =
     span [] [ text (fromChar (fromCode 10061)) ]
 
 
-drawCheckMark : Html msg
-drawCheckMark =
+vDrawCheckMark : Html msg
+vDrawCheckMark =
     span [] [ text (fromChar (fromCode 9989)) ]
 
 
@@ -198,6 +193,11 @@ pwIsDigit n =
     String.any isDigit n
 
 
-pwNotEmpty : String -> Bool
-pwNotEmpty n =
-    String.length n > 0
+pwIsEmpty : String -> Bool
+pwIsEmpty n =
+    String.length n == 0
+
+
+pwIsMatched : Model -> Bool
+pwIsMatched model =
+    model.password == model.passwordAgain
