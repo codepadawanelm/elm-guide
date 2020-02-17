@@ -74,23 +74,23 @@ view model =
         , viewInput "password" "Re-enter Password" model.passwordAgain PasswordAgain
         , ul [ style "list-style" "none" ]
             [ li []
-                [ vPwLength model
+                [ vDrawSymbol pwLength model
                 , text " Password must be at least 8 characters long."
                 ]
             , li []
-                [ vPwIsUpper model
+                [ vDrawSymbol pwIsUpper model
                 , text " Password must contain at least one uppercase character."
                 ]
             , li []
-                [ vPwIsLower model
+                [ vDrawSymbol pwIsLower model
                 , text " Password must contain at least one lowercase character."
                 ]
             , li []
-                [ vPwIsDigit model
+                [ vDrawSymbol pwIsDigit model
                 , text " Password must contain at least one numeric character."
                 ]
             , li []
-                [ vPwIsMatched model
+                [ vDrawSymbol pwIsMatched model
                 , text " Passwords must match."
                 ]
             ]
@@ -105,58 +105,16 @@ viewInput t p v toMsg =
 
 vSubmitButton : Model -> Html msg
 vSubmitButton model =
-    if
-        pwIsMatched model
-            && pwLength model.password
-            && pwIsUpper model.password
-            && pwIsLower model.password
-            && pwIsDigit model.password
-    then
-        button [ disabled False ] [ text "Submit" ]
+    if pwLength model && pwIsUpper model && pwIsLower model && pwIsDigit model && pwIsMatched model then
+        button [] [ text "Submit" ]
 
     else
         button [ disabled True ] [ text "Submit" ]
 
 
-vPwLength : Model -> Html msg
-vPwLength model =
-    if List.any pwLength [ model.password, model.passwordAgain ] then
-        vDrawCheckMark
-
-    else
-        vDrawCircle
-
-
-vPwIsUpper : Model -> Html msg
-vPwIsUpper model =
-    if List.any pwIsUpper [ model.password, model.passwordAgain ] then
-        vDrawCheckMark
-
-    else
-        vDrawCircle
-
-
-vPwIsLower : Model -> Html msg
-vPwIsLower model =
-    if List.any pwIsLower [ model.password, model.passwordAgain ] then
-        vDrawCheckMark
-
-    else
-        vDrawCircle
-
-
-vPwIsDigit : Model -> Html msg
-vPwIsDigit model =
-    if List.any pwIsDigit [ model.password, model.passwordAgain ] then
-        vDrawCheckMark
-
-    else
-        vDrawCircle
-
-
-vPwIsMatched : Model -> Html msg
-vPwIsMatched model =
-    if pwIsMatched model && not (pwIsEmpty model.password) == True then
+vDrawSymbol : (Model -> Bool) -> Model -> Html Msg
+vDrawSymbol pwAttribute model =
+    if pwAttribute model then
         vDrawCheckMark
 
     else
@@ -173,31 +131,31 @@ vDrawCheckMark =
     span [] [ text (fromChar (fromCode 9989)) ]
 
 
-pwLength : String -> Bool
-pwLength n =
-    String.length n >= 8
+pwLength : Model -> Bool
+pwLength model =
+    String.length model.password >= 8 || String.length model.passwordAgain >= 8
 
 
-pwIsUpper : String -> Bool
-pwIsUpper n =
-    String.any isUpper n
+pwIsUpper : Model -> Bool
+pwIsUpper model =
+    String.any isUpper model.password || String.any isUpper model.password
 
 
-pwIsLower : String -> Bool
-pwIsLower n =
-    String.any isLower n
+pwIsLower : Model -> Bool
+pwIsLower model =
+    String.any isLower model.password || String.any isLower model.passwordAgain
 
 
-pwIsDigit : String -> Bool
-pwIsDigit n =
-    String.any isDigit n
+pwIsDigit : Model -> Bool
+pwIsDigit model =
+    String.any isDigit model.password || String.any isDigit model.passwordAgain
 
 
-pwIsEmpty : String -> Bool
-pwIsEmpty n =
-    String.length n == 0
+pwIsEmpty : Model -> Bool
+pwIsEmpty model =
+    String.length model.password == 0 || String.length model.passwordAgain == 0
 
 
 pwIsMatched : Model -> Bool
 pwIsMatched model =
-    model.password == model.passwordAgain
+    model.password == model.passwordAgain && not (pwIsEmpty model)
