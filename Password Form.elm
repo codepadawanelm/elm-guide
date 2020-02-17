@@ -74,27 +74,27 @@ view model =
         , viewInput "password" "Re-enter Password" model.passwordAgain PasswordAgain
         , ul [ style "list-style" "none" ]
             [ li []
-                [ vDrawSymbol pwLength model
+                [ viewDrawSymbol pwLength model
                 , text " Password must be at least 8 characters long."
                 ]
             , li []
-                [ vDrawSymbol pwIsUpper model
+                [ viewDrawSymbol pwIsUpper model
                 , text " Password must contain at least one uppercase character."
                 ]
             , li []
-                [ vDrawSymbol pwIsLower model
+                [ viewDrawSymbol pwIsLower model
                 , text " Password must contain at least one lowercase character."
                 ]
             , li []
-                [ vDrawSymbol pwIsDigit model
+                [ viewDrawSymbol pwIsDigit model
                 , text " Password must contain at least one numeric character."
                 ]
             , li []
-                [ vDrawSymbol pwIsMatched model
+                [ viewDrawSymbol pwIsMatched model
                 , text " Passwords must match."
                 ]
             ]
-        , vSubmitButton model
+        , viewSubmitButton model
         ]
 
 
@@ -103,8 +103,8 @@ viewInput t p v toMsg =
     input [ type_ t, placeholder p, value v, onInput toMsg ] []
 
 
-vSubmitButton : Model -> Html msg
-vSubmitButton model =
+viewSubmitButton : Model -> Html msg
+viewSubmitButton model =
     if pwLength model && pwIsUpper model && pwIsLower model && pwIsDigit model && pwIsMatched model then
         button [] [ text "Submit" ]
 
@@ -112,22 +112,22 @@ vSubmitButton model =
         button [ disabled True ] [ text "Submit" ]
 
 
-vDrawSymbol : (Model -> Bool) -> Model -> Html Msg
-vDrawSymbol pwAttribute model =
+viewDrawSymbol : (Model -> Bool) -> Model -> Html Msg
+viewDrawSymbol pwAttribute model =
     if pwAttribute model then
-        vDrawCheckMark
+        viewDrawCheckMark
 
     else
-        vDrawCircle
+        viewDrawCircle
 
 
-vDrawCircle : Html msg
-vDrawCircle =
+viewDrawCircle : Html msg
+viewDrawCircle =
     span [] [ text (fromChar (fromCode 10061)) ]
 
 
-vDrawCheckMark : Html msg
-vDrawCheckMark =
+viewDrawCheckMark : Html msg
+viewDrawCheckMark =
     span [] [ text (fromChar (fromCode 9989)) ]
 
 
