@@ -8,9 +8,9 @@
 module Main exposing (..)
 
 import Browser
-import Char exposing (fromCode, isDigit, isLower, isUpper)
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Char exposing (fromCode, isDigit, isLower, isUpper, toCode)
+import Html exposing (Html, br, button, form, input, label, li, span, text, ul)
+import Html.Attributes exposing (disabled, placeholder, style, type_, value)
 import Html.Events exposing (onInput)
 import String exposing (fromChar)
 
@@ -28,15 +28,14 @@ main =
 
 
 type alias Model =
-    { name : String
-    , password : String
-    , passwordAgain : String
+    { password : String
+    , confirmPassword : String
     }
 
 
 init : Model
 init =
-    Model "" "" ""
+    Model "" ""
 
 
 
@@ -44,22 +43,18 @@ init =
 
 
 type Msg
-    = Name String
-    | Password String
-    | PasswordAgain String
+    = Password String
+    | ConfirmPassword String
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Name name ->
-            { model | name = name }
-
         Password password ->
             { model | password = password }
 
-        PasswordAgain password ->
-            { model | passwordAgain = password }
+        ConfirmPassword password ->
+            { model | confirmPassword = password }
 
 
 
@@ -68,53 +63,64 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ viewInput "text" "Name" model.name Name
-        , viewInput "password" "Password" model.password Password
-        , viewInput "password" "Re-enter Password" model.passwordAgain PasswordAgain
+    form []
+        [ label [] [ text "Password" ]
+        , br [] []
+        , input [ type_ "password", placeholder "Password", value model.password, onInput Password ] []
+        , br [] []
+        , label [] [ text "Confirm Password" ]
+        , br [] []
+        , viewConfirmPassword model
         , ul [ style "list-style" "none" ]
             [ li []
-                [ viewDrawSymbol pwLength model
-                , text " Password must be at least 8 characters long."
+                [ viewDrawSymbol pwLength model.password
+                , text "8 characters or longer."
                 ]
             , li []
-                [ viewDrawSymbol pwIsUpper model
-                , text " Password must contain at least one uppercase character."
+                [ viewDrawSymbol pwIsUpper model.password
+                , text "1 or more uppercase characters."
                 ]
             , li []
-                [ viewDrawSymbol pwIsLower model
-                , text " Password must contain at least one lowercase character."
+                [ viewDrawSymbol pwIsLower model.password
+                , text "1 or more lowercase characters."
                 ]
             , li []
-                [ viewDrawSymbol pwIsDigit model
-                , text " Password must contain at least one numeric character."
+                [ viewDrawSymbol pwIsDigit model.password
+                , text "1 or more numbers."
+                ]
+            , li []
+                [ viewDrawSymbol pwIsSpecial model.password
+                , text "1 or more special characters."
                 ]
             , li []
                 [ viewDrawSymbol pwIsMatched model
-                , text " Passwords must match."
+                , text "Passwords must match."
                 ]
             ]
         , viewSubmitButton model
         ]
 
 
-viewInput : String -> String -> String -> (String -> msg) -> Html msg
-viewInput t p v toMsg =
-    input [ type_ t, placeholder p, value v, onInput toMsg ] []
-
-
 viewSubmitButton : Model -> Html msg
 viewSubmitButton model =
-    if pwLength model && pwIsUpper model && pwIsLower model && pwIsDigit model && pwIsMatched model then
-        button [] [ text "Submit" ]
-
-    else
-        button [ disabled True ] [ text "Submit" ]
+    button [ disabled (not (pwIsMatched model)) ] [ text "Submit" ]
 
 
-viewDrawSymbol : (Model -> Bool) -> Model -> Html Msg
-viewDrawSymbol pwAttribute model =
-    if pwAttribute model then
+viewConfirmPassword : Model -> Html Msg
+viewConfirmPassword model =
+    let
+        n =
+            model.password
+
+        passwordCriteriaMet =
+            not (pwLength n && pwIsUpper n && pwIsLower n && pwIsDigit n && pwIsSpecial n)
+    in
+    input [ type_ "password", placeholder "Confirm Password", value model.confirmPassword, onInput ConfirmPassword, disabled passwordCriteriaMet ] []
+
+
+viewDrawSymbol : (a -> Bool) -> a -> Html Msg
+viewDrawSymbol pwAttribute a =
+    if pwAttribute a then
         viewDrawCheckMark
 
     else
@@ -128,34 +134,51 @@ viewDrawCircle =
 
 viewDrawCheckMark : Html msg
 viewDrawCheckMark =
-    span [] [ text (fromChar (fromCode 9989)) ]
+    span [] [ text (fromChar (fromCode 10004)) ]
 
 
-pwLength : Model -> Bool
-pwLength model =
-    String.length model.password >= 8 || String.length model.passwordAgain >= 8
+pwLength : String -> Bool
+pwLength n =
+    String.length n >= 8
 
 
-pwIsUpper : Model -> Bool
-pwIsUpper model =
-    String.any isUpper model.password || String.any isUpper model.password
+pwIsUpper : String -> Bool
+pwIsUpper n =
+    String.any isUpper n
 
 
-pwIsLower : Model -> Bool
-pwIsLower model =
-    String.any isLower model.password || String.any isLower model.passwordAgain
+pwIsLower : String -> Bool
+pwIsLower n =
+    String.any isLower n
 
 
-pwIsDigit : Model -> Bool
-pwIsDigit model =
-    String.any isDigit model.password || String.any isDigit model.passwordAgain
+pwIsDigit : String -> Bool
+pwIsDigit n =
+    String.any isDigit n
 
 
-pwIsEmpty : Model -> Bool
-pwIsEmpty model =
-    String.length model.password == 0 || String.length model.passwordAgain == 0
+pwIsSpecial : String -> Bool
+pwIsSpecial n =
+    String.any isSpecial n
+
+
+pwIsEmpty : String -> Bool
+pwIsEmpty n =
+    String.isEmpty n
 
 
 pwIsMatched : Model -> Bool
 pwIsMatched model =
-    model.password == model.passwordAgain && not (pwIsEmpty model)
+    model.password == model.confirmPassword && not (pwIsEmpty model.password)
+
+
+isSpecial : Char -> Bool
+isSpecial char =
+    let
+        code =
+            toCode char
+    in
+    (0x20 <= code && code <= 0x2E)
+        || (0x3A <= code && code <= 0x40)
+        || (0x5B <= code && code <= 0x60)
+        || (0x7B <= code && code <= 0x7E)
