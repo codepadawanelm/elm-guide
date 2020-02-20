@@ -1,6 +1,6 @@
--- Input a user name and password. Make sure the password matches.
+-- Input a password and confirm it based on criteria.
 --
--- Read how it works:
+-- Read more:
 --   https://guide.elm-lang.org/architecture/forms.html
 --
 
